@@ -1,0 +1,5 @@
+# sensitive-codepaths.yml
+codepaths:
+  - './middleware/auth.js'
+  - './path/to/another/file.js'
+  - './path/to/some/directory'

@@ -1,0 +1,45 @@
+name: Check for changes in specified codepaths
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+
+jobs:
+  check_changes:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Install yq
+        run: |
+          sudo snap install yq
+
+      - name: Check for changes in specified codepaths
+        id: check_changes
+        run: |
+          # Read codepaths from sensitive-codepaths.yml
+          codepaths=$(yq e '.codepaths' sensitive-codepaths.yml)
+          changes_detected=false
+
+          for codepath in $codepaths; do
+            git diff --quiet --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} -- "$codepath"
+            if [ $? -eq 0 ]; then
+              changes_detected=true
+              break
+            fi
+          done
+
+          echo "::set-output name=changes_detected::$changes_detected"
+
+      - name: Print result
+        run: |
+          if [ ${{ steps.check_changes.outputs.changes_detected }} == "true" ]; then
+            echo "Changes detected in specified codepaths"
+          else
+            echo "No changes detected in specified codepaths"
+          fi
