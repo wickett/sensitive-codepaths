@@ -23,10 +23,15 @@ codepaths:
 2. Add the following snippet to your workflow file (e.g., .github/workflows/check_changes.yml):
 
 ```yaml
-- uses: wickett/sensitive-codepaths@v1
+- uses: wickett/sensitive-codepaths@v0.0.1
   with:
     token: ${{ secrets.GITHUB_TOKEN }}
 ```
+
+
+3. Commit and push the changes to your repository.
+
+The action will now run on pull request events and check for changes in the specified codepaths.
 
 ## Example
 
@@ -43,7 +48,9 @@ jobs:
   check_changes:
     runs-on: ubuntu-latest
     steps:
-      - uses: wickett/sensitive-codepaths@v1
+      - uses: wickett/sensitive-codepaths@v0.0.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 ```
+
+
