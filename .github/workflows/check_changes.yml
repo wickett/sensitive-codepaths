@@ -52,8 +52,8 @@ jobs:
 
       - name: Post result
         run: |
-          pr_comment=${{ steps.check_changes.outputs.pr_comment }}
-          commit_sha=${{ steps.check_changes.outputs.commit_sha }}
+          pr_comment="${{ steps.check_changes.outputs.pr_comment }}"
+          commit_sha="${{ steps.check_changes.outputs.commit_sha }}"
           
           if [ "${{ github.event_name }}" == "pull_request" ]; then
             echo "$pr_comment" | gh pr comment ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --body-file=-
