@@ -25,7 +25,6 @@ jobs:
       - name: Check for changes in specified codepaths
         id: check_changes
         run: | 
-          git st
           # Read codepaths from sensitive-codepaths.yml
           codepaths=$(yq e '.codepaths' sensitive-codepaths.yml)
           changes_detected=false
@@ -48,10 +47,18 @@ jobs:
 
           echo "::set-output name=pr_comment::$pr_comment"
 
-      - name: Post result to pull request
-        id: post_result
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Set the commit_sha output variable
+          echo "::set-output name=commit_sha::${{ github.sha }}"
+
+      - name: Post result
         run: |
           pr_comment=${{ steps.check_changes.outputs.pr_comment }}
-          echo "$pr_comment" | gh pr comment ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --body-file=-
+          commit_sha=${{ steps.check_changes.outputs.commit_sha }}
+          
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            echo "$pr_comment" | gh pr comment ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --body-file=-
+          elif [ "${{ github.event_name }}" == "push" ]; then
+            echo "$pr_comment" | gh api repos/${{ github.repository }}/commits/$commit_sha/comments --input=-
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
