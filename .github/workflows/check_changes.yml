@@ -34,7 +34,15 @@ jobs:
             fi
           done
 
-          echo "::set-output name=changes_detected::$changes_detected"
+          pr_comment=""
+
+          if [ "$changes_detected" == "true" ]; then
+            pr_comment+="🚨 **$impacted_codepaths_count sensitive codepaths impacted!** 🚨\n\nChanges detected in specified codepaths. Please review carefully! 💥"
+          else
+            pr_comment+="🎉 **No sensitive codepaths impacted!** 🎉\n\nNo changes detected in specified codepaths. Good to go! 🚀"
+          fi
+
+          echo "::set-output name=pr_comment::$pr_comment"
 
       - name: Print result
         run: |
@@ -43,3 +51,10 @@ jobs:
           else
             echo "No changes detected in specified codepaths"
           fi
+
+      - name: Post result to pull request
+        run: |
+          pr_comment=${{ steps.check_changes.outputs.pr_comment }}
+          echo "$pr_comment" | gh pr comment ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --body-file=-
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,47 +1,21 @@
 name: 'Sensitive Codepaths Check'
-description: 'Check for changes in specified codepaths in a pull request'
+description: "A GitHub action to check for changes in specified codepaths of a pull request"
 author: 'James Wickett'
+
 branding:
   icon: 'code'
   color: 'blue'
 
 inputs:
+  sensitive_codepaths_file:
+    description: "The YAML file containing the list of sensitive codepaths"
+    required: true
   token:
-    description: 'GitHub token'
+    description: 'GitHub token for auth'
     required: true
 
 runs:
   using: 'composite'
-  steps:
-    - run: |
-        sudo snap install yq
-      shell: bash
-
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-        token: ${{ inputs.token }}
-
-    - run: |
-        # Read codepaths from sensitive-codepaths.yml
-        codepaths=$(yq e '.codepaths' sensitive-codepaths.yml)
-        changes_detected=false
-
-        for codepath in $codepaths; do
-          git diff --quiet --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} -- "$codepath"
-          if [ $? -eq 0 ]; then
-            changes_detected=true
-            break
-          fi
-        done
-
-        echo "::set-output name=changes_detected::$changes_detected"
-      shell: bash
-
-    - run: |
-        if [ ${{ steps.check_changes.outputs.changes_detected }} == "true" ]; then
-          echo "Changes detected in specified codepaths"
-        else
-          echo "No changes detected in specified codepaths"
-        fi
+    steps:
+    - run: echo "Using the Check Sensitive Codepaths action"
       shell: bash
