@@ -21,7 +21,8 @@ jobs:
 
       - name: Check for changes in specified codepaths
         id: check_changes
-        run: |git st
+        run: | 
+          git st
           # Read codepaths from sensitive-codepaths.yml
           codepaths=$(yq e '.codepaths' sensitive-codepaths.yml)
           changes_detected=false
