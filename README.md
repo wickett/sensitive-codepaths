@@ -23,7 +23,7 @@ codepaths:
 2. Add the following snippet to your workflow file (e.g., .github/workflows/check_changes.yml):
 
 ```yaml
-- uses: wickett/sensitive-codepaths@v0.0.1
+- uses: wickett/sensitive-codepaths@v0.0.2
   with:
     token: ${{ secrets.GITHUB_TOKEN }}
 ```
@@ -48,7 +48,7 @@ jobs:
   check_changes:
     runs-on: ubuntu-latest
     steps:
-      - uses: wickett/sensitive-codepaths@v0.0.1
+      - uses: wickett/sensitive-codepaths@v0.0.2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 ```
