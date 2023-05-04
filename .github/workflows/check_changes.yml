@@ -21,7 +21,7 @@ jobs:
 
       - name: Check for changes in specified codepaths
         id: check_changes
-        run: |
+        run: |git st
           # Read codepaths from sensitive-codepaths.yml
           codepaths=$(yq e '.codepaths' sensitive-codepaths.yml)
           changes_detected=false
@@ -44,17 +44,10 @@ jobs:
 
           echo "::set-output name=pr_comment::$pr_comment"
 
-      - name: Print result
-        run: |
-          if [ ${{ steps.check_changes.outputs.changes_detected }} == "true" ]; then
-            echo "Changes detected in specified codepaths"
-          else
-            echo "No changes detected in specified codepaths"
-          fi
-
       - name: Post result to pull request
+        id: post_result
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           pr_comment=${{ steps.check_changes.outputs.pr_comment }}
           echo "$pr_comment" | gh pr comment ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --body-file=-
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
