@@ -28,12 +28,13 @@ jobs:
           # Read codepaths from sensitive-codepaths.yml
           codepaths=$(yq e '.codepaths' sensitive-codepaths.yml)
           changes_detected=false
+          impacted_codepaths_count=0
 
           for codepath in $codepaths; do
-            git diff --quiet --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} -- "$codepath"
+            git diff --quiet --name-only ${{ github.event.before }} ${{ github.event.after }} -- "$codepath"
             if [ $? -eq 0 ]; then
               changes_detected=true
-              break
+              impacted_codepaths_count=$((impacted_codepaths_count + 1))
             fi
           done
 
@@ -46,9 +47,6 @@ jobs:
           fi
 
           echo "::set-output name=pr_comment::$pr_comment"
-
-          # Set the commit_sha output variable
-          echo "::set-output name=commit_sha::${{ github.sha }}"
 
       - name: Post result
         run: |
