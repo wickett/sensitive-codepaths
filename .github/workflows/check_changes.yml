@@ -72,9 +72,9 @@ jobs:
           fi
       
           if [ "${{ github.event_name }}" == "pull_request" ]; then
-            echo "$pr_comment" | gh pr comment --repo ${{ github.repository }} --body -
+            echo "{\"body\": \"$pr_comment\"}" | gh pr comment --repo ${{ github.repository }} --input -
           elif [ "${{ github.event_name }}" == "push" ]; then
-            echo "$pr_comment" | gh api repos/${{ github.repository }}/commits/${{ github.sha }}/comments --input-raw -
+            echo "{\"body\": \"$pr_comment\"}" | gh api repos/${{ github.repository }}/commits/${{ github.sha }}/comments --input -
           fi
       env:
           GITHUB_TOKEN: ${{ secrets.MY_GITHUB_PAT }}
