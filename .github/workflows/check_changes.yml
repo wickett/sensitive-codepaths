@@ -61,4 +61,4 @@ jobs:
             echo "$pr_comment" | gh api repos/${{ github.repository }}/commits/$commit_sha/comments --input=-
           fi
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_PAT }}

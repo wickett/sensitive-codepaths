@@ -10,8 +10,8 @@ inputs:
   sensitive_codepaths_file:
     description: "The YAML file containing the list of sensitive codepaths"
     required: true
-  token:
-    description: 'GitHub token for auth'
+  env:
+    description: 'GitHub Personal Access Token'
     required: true
 
 runs:
