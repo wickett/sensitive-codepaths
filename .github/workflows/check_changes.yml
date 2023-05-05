@@ -42,6 +42,16 @@ jobs:
               impacted_codepaths_count=$((impacted_codepaths_count + 1))
             fi
           done
+            if [ "$GITHUB_EVENT_NAME" == "pull_request" ]; then
+              echo "$pr_comment" | gh pr comment --repo "$GITHUB_REPOSITORY" --body-file=-
+            elif [ "$GITHUB_EVENT_NAME" == "push" ]; then
+              commit_sha="$GITHUB_SHA"
+              json_payload=$(jq -n --arg body "$pr_comment" '{body: $body}')
+              echo "Repository: $GITHUB_REPOSITORY"
+              echo "Commit SHA: $commit_sha"
+              echo "JSON Payload: $json_payload"
+              echo "$json_payload" | gh api "repos/$GITHUB_REPOSITORY/commits/$commit_sha/comments" --input=-
+            fi
 
           pr_comment=""
 
