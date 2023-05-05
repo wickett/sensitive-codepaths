@@ -55,10 +55,12 @@ jobs:
           pr_comment="${{ steps.check_changes.outputs.pr_comment }}"
           commit_sha="${{ steps.check_changes.outputs.commit_sha }}"
           
-          if [ "${{ github.event_name }}" == "pull_request" ]; then
-            echo "$pr_comment" | gh pr comment ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --body-file=-
-          elif [ "${{ github.event_name }}" == "push" ]; then
-            echo "$pr_comment" | gh api repos/${{ github.repository }}/commits/$commit_sha/comments --input=-
+          if [ "$GITHUB_EVENT_NAME" == "pull_request" ]; then
+            echo "$pr_comment" | gh pr comment --repo "$GITHUB_REPOSITORY" --body-file=-
+          elif [ "$GITHUB_EVENT_NAME" == "push" ]; then
+            json_payload=$(jq -n --arg body "$pr_comment" '{body: $body}')
+            echo "$json_payload" | gh api "repos/$GITHUB_REPOSITORY/commits/$commit_sha/comments" --input=-
           fi
+
         env:
           GITHUB_TOKEN: ${{ secrets.MY_GITHUB_PAT }}
