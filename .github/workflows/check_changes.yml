@@ -1,70 +1,74 @@
-name: Check for changes in specified codepaths
+name: Check Sensitive Codepaths
 
 on:
-  push:
-    branches:
-      - '**'
   pull_request:
-    types:
-      - opened
-      - synchronize
+  push:
 
 jobs:
   check_changes:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
+    - name: Check out repository
+      uses: actions/checkout@v2
 
-      - name: Install yq
-        run: |
-          sudo snap install yq
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.x
 
-      - name: Check for changes in specified codepaths
-        id: check_changes
-        run: | 
-          # Read codepaths from sensitive-codepaths.yml
-          codepaths=$(yq e '.codepaths' sensitive-codepaths.yml)
-          changes_detected=false
-          impacted_codepaths_count=0
+    - name: Install yq
+      run: pip install yq
 
-          for codepath in $codepaths; do
-            if [ "$GITHUB_EVENT_NAME" == "pull_request" ]; then
-              git diff --quiet --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} -- "$codepath"
-            elif [ "$GITHUB_EVENT_NAME" == "push" ]; then
-              git diff --quiet --name-only "$GITHUB_SHA"~1 "$GITHUB_SHA" -- "$codepath"
-            fi
+    - name: Check sensitive codepaths (pull_request)
+      if: ${{ github.event_name == 'pull_request' }}
+      run: |
+        # Read codepaths from sensitive-codepaths.yml
+        codepaths=$(yq e '.codepaths' sensitive-codepaths.yml)
+        changes_detected=false
+        impacted_codepaths_count=0
 
-            if [ $? -eq 0 ]; then
-              changes_detected=true
-              impacted_codepaths_count=$((impacted_codepaths_count + 1))
-            fi
-          done
-
-          pr_comment=""
-
-          if [ "$changes_detected" == "true" ]; then
-            pr_comment+="🚨 **$impacted_codepaths_count sensitive codepaths impacted!** 🚨\n\nChanges detected in specified codepaths. Please review carefully! 💥"
-          else
-            pr_comment+="🎉 **No sensitive codepaths impacted!** 🎉\n\nNo changes detected in specified codepaths. Good to go! 🚀"
+        for codepath in $codepaths; do
+          git diff --quiet --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} -- "$codepath"
+          if [ $? -eq 0 ]; then
+            changes_detected=true
+            impacted_codepaths_count=$((impacted_codepaths_count + 1))
           fi
+        done
 
-          echo "::set-output name=pr_comment::$pr_comment"
+        echo "changes_detected=$changes_detected" >> $GITHUB_ENV
+        echo "impacted_codepaths_count=$impacted_codepaths_count" >> $GITHUB_ENV
 
+    - name: Check sensitive codepaths (push)
+      if: ${{ github.event_name == 'push' }}
+      run: |
+        # Read codepaths from sensitive-codepaths.yml
+        codepaths=$(yq e '.codepaths' sensitive-codepaths.yml)
+        changes_detected=false
+        impacted_codepaths_count=0
 
-      - name: Post result
-        run: |
-          pr_comment="${{ steps.check_changes.outputs.pr_comment }}"
-          commit_sha="${{ steps.check_changes.outputs.commit_sha }}"
-          
-          if [ "$GITHUB_EVENT_NAME" == "pull_request" ]; then
-            echo "$pr_comment" | gh pr comment --repo "$GITHUB_REPOSITORY" --body-file=-
-          elif [ "$GITHUB_EVENT_NAME" == "push" ]; then
-            json_payload=$(jq -n --arg body "$pr_comment" '{body: $body}')
-            echo "$json_payload" | gh api "repos/$GITHUB_REPOSITORY/commits/$commit_sha/comments" --input=-
+        for codepath in $codepaths; do
+          git diff --quiet --name-only "$GITHUB_SHA"~1 "$GITHUB_SHA" -- "$codepath"
+          if [ $? -eq 0 ]; then
+            changes_detected=true
+            impacted_codepaths_count=$((impacted_codepaths_count + 1))
           fi
+        done
 
-        env:
-          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_PAT }}
+        echo "changes_detected=$changes_detected" >> $GITHUB_ENV
+        echo "impacted_codepaths_count=$impacted_codepaths_count" >> $GITHUB_ENV
+
+    - name: Post result to pull request
+      run: |
+        pr_comment=""
+        if [ "$changes_detected" == "true" ]; then
+          pr_comment+="🚨 **$impacted_codepaths_count sensitive codepaths impacted!** 🚨\n\nChanges detected in specified codepaths. Please review carefully! 💥"
+        else
+          pr_comment+="🎉 **No sensitive codepaths impacted!** 🎉\n\nNo changes detected in specified codepaths. Good to go! 🚀"
+        fi
+
+        if [ "$GITHUB_EVENT_NAME" == "pull_request" ]; then
+          echo "$pr_comment" | gh pr comment --repo "$GITHUB_REPOSITORY" --body-file=-
+        elif [ "$GITHUB_EVENT_NAME" == "push" ]; then
+          commit_sha="$GITHUB_SHA"
+         
