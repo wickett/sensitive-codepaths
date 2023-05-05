@@ -27,7 +27,7 @@ jobs:
       if: ${{ github.event_name == 'pull_request' }}
       run: |
         # Read codepaths from sensitive-codepaths.yml
-        codepaths=$(yq r sensitive-codepaths.yml codepaths.*)
+        codepaths=$(yq r -j sensitive-codepaths.yml | jq -r '.codepaths[]')
         changes_detected=false
         impacted_codepaths_count=0
 
@@ -46,7 +46,7 @@ jobs:
       if: ${{ github.event_name == 'push' }}
       run: |
         # Read codepaths from sensitive-codepaths.yml
-        codepaths=$(yq r sensitive-codepaths.yml codepaths.*)
+        codepaths=$(yq r -j sensitive-codepaths.yml | jq -r '.codepaths[]')
         changes_detected=false
         impacted_codepaths_count=0
 
