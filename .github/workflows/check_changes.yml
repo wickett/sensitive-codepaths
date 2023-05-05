@@ -62,21 +62,21 @@ jobs:
         echo "impacted_codepaths_count=$impacted_codepaths_count" >> $GITHUB_ENV
 
     - name: Post result
-        run: |
-          pr_comment=""
-          if [ "$changes_detected" == "true" ]; then
-            pr_comment+="🚨 **$impacted_codepaths_count sensitive codepaths impacted!** 🚨\n\nChanges detected in specified codepaths. Please review carefully! 💥"
-          else
-            pr_comment+="🎉 **No sensitive codepaths impacted!** 🎉\n\nNo changes detected in specified codepaths. Good to go! 🚀"
-          fi
+      run: |
+        pr_comment=""
+        if [ "$changes_detected" == "true" ]; then
+          pr_comment+="🚨 **$impacted_codepaths_count sensitive codepaths impacted!** 🚨\n\nChanges detected in specified codepaths. Please review carefully! 💥"
+        else
+          pr_comment+="🎉 **No sensitive codepaths impacted!** 🎉\n\nNo changes detected in specified codepaths. Good to go! 🚀"
+        fi
       
-          pr_comment_encoded=$(echo -n "$pr_comment" | jq -sRr @json)
+        pr_comment_encoded=$(echo -n "$pr_comment" | jq -sRr @json)
       
-          if [ "$GITHUB_EVENT_NAME" == "pull_request" ]; then
-            echo "$pr_comment" | gh pr comment --repo "$GITHUB_REPOSITORY" --body-file=-
-          elif [ "$GITHUB_EVENT_NAME" == "push" ]; then
-            commit_sha="$GITHUB_SHA"
-            gh api repos/"$GITHUB_REPOSITORY"/commits/$commit_sha/comments -f body="$pr_comment_encoded"
-          fi
-        env:
+        if [ "$GITHUB_EVENT_NAME" == "pull_request" ]; then
+          echo "$pr_comment" | gh pr comment --repo "$GITHUB_REPOSITORY" --body-file=-
+        elif [ "$GITHUB_EVENT_NAME" == "push" ]; then
+          commit_sha="$GITHUB_SHA"
+          gh api repos/"$GITHUB_REPOSITORY"/commits/$commit_sha/comments -f body="$pr_comment_encoded"
+        fi
+      env:
           GITHUB_TOKEN: ${{ secrets.MY_GITHUB_PAT }}
