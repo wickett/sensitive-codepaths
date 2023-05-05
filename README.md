@@ -2,6 +2,10 @@
 
 This GitHub action checks for changes in specified sensitive codepaths in your repository. It posts a comment on the pull request or commit, indicating whether any sensitive codepaths were impacted.
 
+## Contextual Security Analysis
+
+This is a Contextual Security Analysis action that is meant to help developers and security work together. If this topic interests you, check out the blog articles over at [dryrun.security](https://dryrun.security) on the topic. 
+
 ## Usage
 
 ### Pre-requisites
