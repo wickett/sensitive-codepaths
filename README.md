@@ -41,7 +41,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Sensitive Codepaths Checker
-        uses: wickett/sensitive-codepaths@v0.0.1
+        uses: wickett/sensitive-codepaths@v0.0.2
         env:
           GITHUB_TOKEN: ${{ secrets.MY_GITHUB_PAT }}
 
