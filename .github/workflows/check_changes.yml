@@ -65,9 +65,9 @@ jobs:
       run: |
         pr_comment=""
         if [ "$changes_detected" == "true" ]; then
-          pr_comment+="🚨 **$impacted_codepaths_count sensitive codepaths impacted!** 🚨\n\nChanges detected in specified codepaths. Please review carefully! 💥"
+          pr_comment+="🚨 **$impacted_codepaths_count sensitive codepaths impacted!** Please review carefully! 💥"
         else
-          pr_comment+="🎉 **No sensitive codepaths impacted!** 🎉\n\nNo changes detected in specified codepaths. Good to go! 🚀"
+          pr_comment+="🎉 **No sensitive codepaths impacted!** Good to go! 🚀"
         fi
       
         pr_comment_encoded=$(echo -n "$pr_comment" | jq -sRr @json)
