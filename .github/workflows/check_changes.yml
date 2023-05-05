@@ -32,7 +32,7 @@ jobs:
 
           for codepath in $codepaths; do
             if [ "$GITHUB_EVENT_NAME" == "pull_request" ]; then
-              git diff --quiet --name-only "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}" -- "$codepath"
+              git diff --quiet --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} -- "$codepath"
             elif [ "$GITHUB_EVENT_NAME" == "push" ]; then
               git diff --quiet --name-only "$GITHUB_SHA"~1 "$GITHUB_SHA" -- "$codepath"
             fi
@@ -42,16 +42,6 @@ jobs:
               impacted_codepaths_count=$((impacted_codepaths_count + 1))
             fi
           done
-            if [ "$GITHUB_EVENT_NAME" == "pull_request" ]; then
-              echo "$pr_comment" | gh pr comment --repo "$GITHUB_REPOSITORY" --body-file=-
-            elif [ "$GITHUB_EVENT_NAME" == "push" ]; then
-              commit_sha="$GITHUB_SHA"
-              json_payload=$(jq -n --arg body "$pr_comment" '{body: $body}')
-              echo "Repository: $GITHUB_REPOSITORY"
-              echo "Commit SHA: $commit_sha"
-              echo "JSON Payload: $json_payload"
-              echo "$json_payload" | gh api "repos/$GITHUB_REPOSITORY/commits/$commit_sha/comments" --input=-
-            fi
 
           pr_comment=""
 
@@ -62,6 +52,7 @@ jobs:
           fi
 
           echo "::set-output name=pr_comment::$pr_comment"
+
 
       - name: Post result
         run: |
