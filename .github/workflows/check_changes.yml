@@ -17,6 +17,9 @@ jobs:
       with:
         python-version: 3.x
 
+    - name: Install jq
+      run: sudo apt-get install jq
+
     - name: Install yq
       run: pip install yq
 
@@ -71,9 +74,7 @@ jobs:
           echo "$pr_comment" | gh pr comment --repo "$GITHUB_REPOSITORY" --body-file=-
         elif [ "$GITHUB_EVENT_NAME" == "push" ]; then
           commit_sha="$GITHUB_SHA"
-          echo "$pr_comment" | gh api repos/"$GITHUB_REPOSITORY"/commits/$commit_sha/comments --input=-
+          jq -n --arg body "$pr_comment" '{body: $body}' | gh api repos/"$GITHUB_REPOSITORY"/commits/$commit_sha/comments --input=-
         fi
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-         
