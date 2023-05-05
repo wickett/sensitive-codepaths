@@ -63,20 +63,18 @@ jobs:
     
     - name: Post result
       run: |
-        pr_comment=""
+          pr_comment=""
+
+          if [ "$changes_detected" == "true" ]; then
+            pr_comment+="🚨 **$impacted_codepaths_count sensitive codepaths impacted!** 🚨\n\nChanges detected in specified codepaths. Please review carefully! 💥"
+          else
+            pr_comment+="🎉 **No sensitive codepaths impacted!** 🎉\n\nNo changes detected in specified codepaths. Good to go! 🚀"
+          fi
       
-        if [ "$changes_detected" == "true" ]; then
-          pr_comment+="🚨 **$impacted_codepaths_count sensitive codepaths impacted!** Please review carefully! 💥"
-        else
-          pr_comment+="🎉 **No sensitive codepaths impacted!** Good to go! 🚀"
-        fi
-      
-        echo "$pr_comment" > pr_comment.txt
-      
-        if [ "${{ github.event_name }}" == "pull_request" ]; then
-          gh pr comment --repo ${{ github.repository }} --body-file pr_comment.txt
-        elif [ "${{ github.event_name }}" == "push" ]; then
-          gh api repos/${{ github.repository }}/commits/${{ github.sha }}/comments --input pr_comment.txt
-        fi
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            echo "$pr_comment" | gh pr comment --repo ${{ github.repository }} --body -
+          elif [ "${{ github.event_name }}" == "push" ]; then
+            echo "$pr_comment" | gh api repos/${{ github.repository }}/commits/${{ github.sha }}/comments --input-raw -
+          fi
       env:
           GITHUB_TOKEN: ${{ secrets.MY_GITHUB_PAT }}
