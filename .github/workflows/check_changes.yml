@@ -31,7 +31,12 @@ jobs:
           impacted_codepaths_count=0
 
           for codepath in $codepaths; do
-            git diff --quiet --name-only ${{ github.event.before }} ${{ github.event.after }} -- "$codepath"
+            if [ "$GITHUB_EVENT_NAME" == "pull_request" ]; then
+              git diff --quiet --name-only "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}" -- "$codepath"
+            elif [ "$GITHUB_EVENT_NAME" == "push" ]; then
+              git diff --quiet --name-only "$GITHUB_SHA"~1 "$GITHUB_SHA" -- "$codepath"
+            fi
+
             if [ $? -eq 0 ]; then
               changes_detected=true
               impacted_codepaths_count=$((impacted_codepaths_count + 1))
